@@ -1,0 +1,6 @@
+{
+  "name": "Smart Table Ordering",
+  "description": "A multi-tenant, multi-branch, real-time QR-code table ordering system with shared cart, kitchen display, and waiter call.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

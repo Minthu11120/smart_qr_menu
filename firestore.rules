@@ -1,0 +1,148 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global safety net - default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions for validating formats and lengths
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    function isValidTenant(data) {
+      return data.keys().hasAll(['id', 'name', 'description', 'createdAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 500 &&
+             data.createdAt is int;
+    }
+
+    function isValidBranch(data) {
+      return data.keys().hasAll(['id', 'tenantId', 'name', 'address', 'phone', 'createdAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.address is string && data.address.size() <= 300 &&
+             data.phone is string && data.phone.size() <= 50 &&
+             data.createdAt is int;
+    }
+
+    function isValidTable(data) {
+      return data.keys().hasAll(['id', 'tenantId', 'branchId', 'number', 'status', 'activeSessionToken', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.branchId is string && data.branchId.size() <= 100 &&
+             data.number is string && data.number.size() <= 10 &&
+             data.status is string && data.status.size() <= 50 &&
+             data.activeSessionToken is string && data.activeSessionToken.size() <= 100 &&
+             data.updatedAt is int;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'name', 'role', 'createdAt']) &&
+             data.uid is string && data.uid.size() <= 100 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.role is string && data.role.size() <= 50 &&
+             data.createdAt is int;
+    }
+
+    function isValidMenuItem(data) {
+      return data.keys().hasAll(['id', 'tenantId', 'category', 'name', 'description', 'price', 'imageUrl', 'isAvailable', 'createdAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             (data.price is int || data.price is float) &&
+             data.imageUrl is string && data.imageUrl.size() <= 1000 &&
+             data.isAvailable is bool &&
+             data.createdAt is int;
+    }
+
+    function isValidCart(data) {
+      return data.keys().hasAll(['id', 'tenantId', 'branchId', 'items', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.branchId is string && data.branchId.size() <= 100 &&
+             data.items is list &&
+             data.updatedAt is int;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['id', 'tenantId', 'branchId', 'branchName', 'tableId', 'tableNumber', 'items', 'subtotal', 'tax', 'total', 'status', 'sessionToken', 'customerId', 'idempotencyKey', 'createdAt', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.branchId is string && data.branchId.size() <= 100 &&
+             data.branchName is string && data.branchName.size() <= 200 &&
+             data.tableId is string && data.tableId.size() <= 100 &&
+             data.tableNumber is string && data.tableNumber.size() <= 10 &&
+             data.items is list &&
+             (data.subtotal is int || data.subtotal is float) &&
+             (data.tax is int || data.tax is float) &&
+             (data.total is int || data.total is float) &&
+             data.status is string && data.status.size() <= 50 &&
+             data.sessionToken is string && data.sessionToken.size() <= 100 &&
+             data.customerId is string && data.customerId.size() <= 100 &&
+             data.idempotencyKey is string && data.idempotencyKey.size() <= 100 &&
+             data.createdAt is int &&
+             data.updatedAt is int;
+    }
+
+    function isValidWaiterCall(data) {
+      return data.keys().hasAll(['tenantId', 'branchId', 'tableId', 'tableNumber', 'type', 'status', 'createdAt']) &&
+             data.tenantId is string && data.tenantId.size() <= 100 &&
+             data.branchId is string && data.branchId.size() <= 100 &&
+             data.tableId is string && data.tableId.size() <= 100 &&
+             data.tableNumber is string && data.tableNumber.size() <= 10 &&
+             data.type is string && data.type.size() <= 100 &&
+             data.status is string && data.status.size() <= 50 &&
+             data.createdAt is int;
+    }
+
+    // Collection match rules
+    match /tenants/{tenantId} {
+      allow read: if true;
+      allow write: if isValidId(tenantId) && isValidTenant(request.resource.data);
+    }
+
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if isValidId(branchId) && isValidBranch(request.resource.data);
+    }
+
+    match /tables/{tableId} {
+      allow read: if true;
+      allow write: if isValidId(tableId) && isValidTable(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if isValidId(userId) && isValidUser(request.resource.data);
+    }
+
+    match /menu_items/{itemId} {
+      allow read: if true;
+      allow write: if isValidId(itemId) && isValidMenuItem(request.resource.data);
+    }
+
+    match /carts/{cartId} {
+      allow read: if true;
+      allow write: if isValidId(cartId) && isValidCart(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow write: if isValidId(orderId) && isValidOrder(request.resource.data);
+    }
+
+    match /waiter_calls/{callId} {
+      allow read: if true;
+      allow write: if isValidId(callId) && isValidWaiterCall(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}

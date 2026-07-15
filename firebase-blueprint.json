@@ -1,0 +1,165 @@
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "Represents an SME restaurant brand/tenant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "logoUrl": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "name", "description", "createdAt"]
+    },
+    "Branch": {
+      "title": "Branch",
+      "description": "A physical restaurant location belonging to a Tenant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 300 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "tenantId", "name", "address", "phone", "createdAt"]
+    },
+    "Table": {
+      "title": "Table",
+      "description": "A dining table inside a Branch with dynamic QR session token",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "number": { "type": "string", "maxLength": 10 },
+        "status": { "type": "string", "enum": ["empty", "ordering", "eating", "calling_waiter"] },
+        "activeSessionToken": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "tenantId", "branchId", "number", "status", "activeSessionToken", "updatedAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profile info and role registration for staff/owners",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["super_admin", "brand_owner", "branch_manager", "kitchen_staff", "waiter_cashier"] },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["uid", "email", "name", "role", "createdAt"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A menu item offered by a brand, with possible branch overrides",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "integer" },
+        "imageUrl": { "type": "string", "maxLength": 1000 },
+        "isAvailable": { "type": "boolean" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "tenantId", "category", "name", "description", "price", "imageUrl", "isAvailable", "createdAt"]
+    },
+    "SharedCart": {
+      "title": "SharedCart",
+      "description": "Realtime synchronized cart for guests seated at a table",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "items": { "type": "array" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "tenantId", "branchId", "items", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An order placed from a table session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "branchName": { "type": "string", "maxLength": 200 },
+        "tableId": { "type": "string", "maxLength": 100 },
+        "tableNumber": { "type": "string", "maxLength": 10 },
+        "items": { "type": "array" },
+        "subtotal": { "type": "integer" },
+        "tax": { "type": "integer" },
+        "total": { "type": "integer" },
+        "status": { "type": "string", "enum": ["pending", "cooking", "delivered", "completed", "cancelled"] },
+        "sessionToken": { "type": "string", "maxLength": 100 },
+        "customerId": { "type": "string", "maxLength": 100 },
+        "idempotencyKey": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "tenantId", "branchId", "branchName", "tableId", "tableNumber", "items", "subtotal", "tax", "total", "status", "sessionToken", "customerId", "idempotencyKey", "createdAt", "updatedAt"]
+    },
+    "WaiterCall": {
+      "title": "WaiterCall",
+      "description": "A summon request from a table",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "tenantId": { "type": "string", "maxLength": 100 },
+        "branchId": { "type": "string", "maxLength": 100 },
+        "tableId": { "type": "string", "maxLength": 100 },
+        "tableNumber": { "type": "string", "maxLength": 10 },
+        "type": { "type": "string", "enum": ["Need Tissue", "Refill Tea", "Request Bill", "Assistance"] },
+        "status": { "type": "string", "enum": ["pending", "resolved"] },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["tenantId", "branchId", "tableId", "tableNumber", "type", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "tenants/{tenantId}": {
+      "schema": "Tenant",
+      "description": "Tenant registry"
+    },
+    "branches/{branchId}": {
+      "schema": "Branch",
+      "description": "Restaurant branches"
+    },
+    "tables/{tableId}": {
+      "schema": "Table",
+      "description": "QR tables"
+    },
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Staff profile"
+    },
+    "menu_items/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Food and beverage menu"
+    },
+    "carts/{cartId}": {
+      "schema": "SharedCart",
+      "description": "Shared shopping carts"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    },
+    "waiter_calls/{callId}": {
+      "schema": "WaiterCall",
+      "description": "Waiter call alerts"
+    }
+  }
+}
